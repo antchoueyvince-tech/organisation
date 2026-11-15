@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--
+  index.html : la page unique de l'application.
+  Étape 3 : la structure de l'application (navigation, zone des écrans),
+  le bouton + et la fenêtre de capture.
+  Étape 4 : la fenêtre « Planifier » et le bandeau « Annuler ».
+  Le contenu de chaque écran est fabriqué par les fichiers de js/ecrans/.
+-->
+<html lang="fr">
+<head>
+  <!-- Permet d'afficher correctement les accents (é, è, à...) -->
+  <meta charset="utf-8">
+  <!-- Adapte la page à la largeur de l'écran (indispensable sur téléphone) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Nom affiché dans l'onglet du navigateur (modifié par app.js selon l'écran) -->
+  <title>Organisation</title>
+  <!-- Couleur de la barre du navigateur sur Android -->
+  <meta name="theme-color" content="#2f6fd6">
+  <!-- Carte d'identité de l'application : nom, icônes, couleurs -->
+  <link rel="manifest" href="manifest.json">
+  <!-- Petite icône affichée dans l'onglet du navigateur -->
+  <link rel="icon" href="icones/icone-192.png" type="image/png">
+  <!-- Relie la page à son fichier d'apparence -->
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Démarrage de l'application -->
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <div class="application">
+
+    <!-- Navigation : barre du bas sur téléphone, colonne de gauche sur PC -->
+    <nav class="navigation" aria-label="Écrans">
+      <button type="button" class="bouton bouton-principal bouton-nouvelle-pc" id="bouton-nouvelle-pc">+ Nouvelle tâche</button>
+      <a href="#aujourdhui" data-ecran="aujourdhui">Aujourd'hui</a>
+      <a href="#inbox" data-ecran="inbox">Inbox <span id="compteur-inbox"></span></a>
+      <a href="#taches" data-ecran="taches"><span class="libelle-court">Tâches</span><span class="libelle-long">Toutes les tâches</span></a>
+      <a href="#reglages" data-ecran="reglages" class="lien-reglages-pc">Réglages</a>
+      <p class="astuce-clavier">N = nouvelle tâche</p>
+    </nav>
+
+    <div class="partie-principale">
+      <header class="entete">
+        <h1 id="titre-ecran">Aujourd'hui</h1>
+        <!-- Sur téléphone, Réglages est en haut à droite -->
+        <a href="#reglages" class="lien-reglages-mobile">Réglages</a>
+      </header>
+      <!-- Le contenu de l'écran affiché est placé ici par app.js -->
+      <main id="ecran" class="ecran"></main>
+    </div>
+
+  </div>
+
+  <!-- Bouton + rond, visible sur téléphone uniquement -->
+  <button type="button" class="bouton-flottant" id="bouton-nouvelle" aria-label="Nouvelle tâche">+</button>
+
+  <!-- Fenêtre de capture (gérée par js/capture.js) -->
+  <dialog class="capture" id="capture" aria-labelledby="titre-capture">
+    <form id="formulaire-capture">
+      <label class="titre-capture" id="titre-capture" for="champ-capture">Nouvelle tâche</label>
+      <input type="text" id="champ-capture" maxlength="200" autocomplete="off"
+             enterkeyhint="done" placeholder="Ex. : Appeler le garage">
+      <p class="message-capture" id="message-capture" role="status"></p>
+      <div class="boutons-capture">
+        <button type="submit" class="bouton bouton-principal">Enregistrer</button>
+        <button type="button" class="bouton" id="fermer-capture">Fermer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Fenêtre « Planifier » (gérée par js/ecrans/inbox.js, étape 4).
+       L'heure se choisit d'abord ; un toucher sur un jour valide aussitôt. -->
+  <dialog class="capture" id="planification" aria-labelledby="titre-planification">
+    <form id="formulaire-planification">
+      <p class="titre-capture" id="titre-planification">Planifier</p>
+      <label class="etiquette-champ" for="heure-planification">Heure (facultatif)</label>
+      <input type="time" id="heure-planification">
+      <p class="etiquette-champ">Jour</p>
+      <div class="choix-jours">
+        <button type="button" class="bouton" data-jour="aujourdhui">Aujourd'hui</button>
+        <button type="button" class="bouton" data-jour="demain">Demain</button>
+      </div>
+      <label class="etiquette-champ" for="date-planification">Autre date</label>
+      <input type="date" id="date-planification">
+      <p class="message-capture" id="message-planification" role="status"></p>
+      <div class="boutons-capture">
+        <button type="submit" class="bouton bouton-principal">Valider la date</button>
+        <button type="button" class="bouton" id="annuler-planification">Annuler</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Bandeau « Annuler » en bas de l'écran (géré par js/bandeau.js, étape 4) -->
+  <div class="bandeau" id="bandeau" role="status" aria-live="polite"></div>
+</body>
+</html>

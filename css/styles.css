@@ -1,0 +1,1050 @@
+/*
+  styles.css : toute l'apparence de l'application.
+  Conçu d'abord pour le téléphone ; la partie « PC » en bas du fichier
+  s'applique aux écrans larges (800 pixels et plus).
+*/
+
+/* ---------- Couleurs (rangées ici une seule fois) ---------- */
+:root {
+  --fond: #f6f7f9;
+  --carte: #ffffff;
+  --texte: #1d2433;
+  --texte-discret: #5f6878;
+  --accent: #2f6fd6;
+  --texte-sur-accent: #ffffff;
+  --bordure: #dde1e8;
+  --ombre-fenetre: rgba(20, 23, 28, 0.45);
+  --accent-doux: rgba(47, 111, 214, 0.12);
+  --bandeau: #1d2433;
+  --texte-bandeau: #ffffff;
+  --retard: #c62f2f;
+  --alerte: #a8570a;
+  --alerte-fond: rgba(245, 158, 11, 0.14);
+}
+
+/* Mode sombre du téléphone ou du PC */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fond: #14171c;
+    --carte: #1e232b;
+    --texte: #eef1f5;
+    --texte-discret: #a3abb8;
+    --accent: #6c9ef0;
+    --texte-sur-accent: #0d1b33;
+    --bordure: #333a45;
+    --ombre-fenetre: rgba(0, 0, 0, 0.6);
+    --accent-doux: rgba(108, 158, 240, 0.18);
+    --bandeau: #eef1f5;
+    --texte-bandeau: #14171c;
+    --retard: #f07a7a;
+    --alerte: #f5b454;
+    --alerte-fond: rgba(245, 158, 11, 0.16);
+  }
+}
+
+/* ---------- Bases ---------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  /* Police déjà installée sur Windows et Android : rien à télécharger. */
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.discret {
+  color: var(--texte-discret);
+  font-size: 14px;
+}
+
+.centre {
+  text-align: center;
+}
+
+/* ---------- Boutons ---------- */
+.bouton {
+  font: inherit;
+  min-height: 44px;            /* taille confortable pour le doigt */
+  padding: 8px 16px;
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  background: var(--carte);
+  color: var(--texte);
+  cursor: pointer;
+}
+
+.bouton-principal {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--texte-sur-accent);
+  font-weight: 600;
+}
+
+/* ---------- En-tête de l'écran ---------- */
+.entete {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--carte);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.entete h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.lien-reglages-mobile {
+  color: var(--texte-discret);
+  font-size: 14px;
+  text-decoration: none;
+  padding: 8px 0 8px 16px;
+}
+
+/* ---------- Zone de l'écran ---------- */
+.ecran {
+  padding: 16px 16px 140px;    /* place en bas pour la barre et le bouton + */
+  max-width: 760px;
+}
+
+.vide {
+  text-align: center;
+  color: var(--texte-discret);
+  padding: 40px 16px 8px;
+  margin: 0;
+}
+
+/* ---------- Navigation (téléphone : barre du bas) ---------- */
+.navigation {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  background: var(--carte);
+  border-top: 1px solid var(--bordure);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.navigation a {
+  flex: 1;
+  padding: 12px 4px 14px;
+  border-top: 3px solid transparent;
+  color: var(--texte-discret);
+  font-size: 14px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.navigation a[aria-current="page"] {
+  border-top-color: var(--accent);
+  color: var(--texte);
+  font-weight: 600;
+}
+
+/* Éléments réservés au PC, cachés sur téléphone */
+.bouton-nouvelle-pc,
+.lien-reglages-pc,
+.astuce-clavier,
+.libelle-long {
+  display: none;
+}
+
+/* ---------- Bouton + rond (téléphone) ---------- */
+.bouton-flottant {
+  position: fixed;
+  right: 16px;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  z-index: 11;
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--texte-sur-accent);
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- Liste de tâches ---------- */
+.liste-taches {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.carte-tache {
+  padding: 12px 14px;
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+}
+
+.titre-tache {
+  font-weight: 500;
+  overflow-wrap: anywhere;     /* un mot très long passe à la ligne */
+}
+
+.meta-tache {
+  color: var(--texte-discret);
+  font-size: 13px;
+}
+
+/* ---------- Fenêtre de capture ---------- */
+.capture {
+  width: min(92vw, 440px);
+  /* Sur téléphone, en haut de l'écran : le clavier ne la cache jamais (D-016). */
+  margin: 72px auto auto;
+  padding: 20px;
+  background: var(--carte);
+  color: var(--texte);
+  border: 1px solid var(--bordure);
+  border-radius: 16px;
+}
+
+.capture::backdrop {
+  background: var(--ombre-fenetre);
+}
+
+.titre-capture {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.capture input {
+  width: 100%;
+  padding: 12px;
+  font: inherit;
+  color: var(--texte);
+  background: var(--fond);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+.capture input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.message-capture {
+  min-height: 1.5em;
+  margin: 8px 0 0;
+  color: var(--texte-discret);
+  font-size: 14px;
+}
+
+.message-capture.succes {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.boutons-capture {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.boutons-capture .bouton {
+  flex: 1;
+}
+
+/* ---------- Qualification dans l'Inbox (étape 4) ---------- */
+.qualification {
+  margin-top: 8px;
+  padding: 16px;
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: 12px;
+}
+
+.zone-titre {
+  margin-bottom: 8px;
+}
+
+.titre-editable {
+  width: 100%;
+  padding: 6px 8px;
+  margin-left: -8px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--texte);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+.titre-editable:hover,
+.titre-editable:focus {
+  border-color: var(--bordure);
+  background: var(--fond);
+  outline: none;
+}
+
+.ligne-qualification {
+  margin-top: 14px;
+}
+
+.etiquette {
+  margin-bottom: 6px;
+  color: var(--texte-discret);
+  font-size: 14px;
+}
+
+.aide {
+  margin-left: 8px;
+  font-size: 13px;
+}
+
+.aide::before {
+  content: "(";
+}
+
+.aide::after {
+  content: ")";
+}
+
+/* Les catégories : des pastilles qui passent à la ligne */
+.puces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.puce {
+  min-height: 40px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--texte);
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.puce-plus {
+  color: var(--texte-discret);
+}
+
+/* Les notes de 1 à 5 : cinq carrés côte à côte */
+.notes {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  max-width: 320px;
+}
+
+.note {
+  min-height: 44px;
+  font: inherit;
+  color: var(--texte);
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Un choix sélectionné : bordure et fond bleutés */
+.puce[aria-pressed="true"],
+.note[aria-pressed="true"] {
+  background: var(--accent-doux);
+  border: 2px solid var(--accent);
+  font-weight: 600;
+}
+
+.interet {
+  margin: 18px 0 0;
+  font-weight: 600;
+}
+
+.actions-qualification {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.actions-qualification .bouton {
+  white-space: nowrap;           /* « Plus tard » ne se coupe jamais en deux */
+}
+
+.actions-qualification .bouton-principal,
+.actions-qualification .bouton:not(.bouton-discret) {
+  flex: 1;
+}
+
+.bouton-discret {
+  border-color: transparent;
+  background: transparent;
+  color: var(--texte-discret);
+}
+
+.astuce-pc {
+  display: none;
+}
+
+/* ---------- Fenêtre « Planifier » (étape 4) ---------- */
+.etiquette-champ {
+  display: block;
+  margin: 14px 0 6px;
+  color: var(--texte-discret);
+  font-size: 14px;
+}
+
+.capture input[type="time"],
+.capture input[type="date"] {
+  width: auto;
+  min-width: 160px;
+}
+
+.choix-jours {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.choix-jours .bouton {
+  flex: 1;
+}
+
+/* ---------- Bandeau « Annuler » (étape 4) ---------- */
+.bandeau {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(148px + env(safe-area-inset-bottom));  /* au-dessus du bouton + */
+  z-index: 20;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 10px 12px 10px 16px;
+  background: var(--bandeau);
+  color: var(--texte-bandeau);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  font-size: 15px;
+}
+
+.bandeau.visible {
+  display: flex;
+}
+
+.bandeau-annuler {
+  min-height: 40px;
+  padding: 6px 12px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--texte-bandeau);
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ---------- Écran Aujourd'hui (étape 5) ---------- */
+.sous-titre-date {
+  margin: 0;
+  color: var(--texte-discret);
+  font-size: 15px;
+}
+
+.sous-titre-date::first-letter {
+  text-transform: uppercase;      /* « Dimanche 15 novembre » */
+}
+
+.bloc {
+  margin-top: 22px;
+}
+
+.titre-bloc {
+  margin: 0 0 8px;
+  color: var(--texte-discret);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.titre-bloc.retard {
+  color: var(--retard);
+}
+
+.bloc .liste-taches {
+  margin-top: 0;
+}
+
+.vide-bloc {
+  margin: 0;
+  color: var(--texte-discret);
+  font-size: 15px;
+}
+
+/* Une carte avec ses boutons à droite */
+.carte-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.contenu-carte {
+  flex: 1;
+  min-width: 0;                   /* permet au titre long de passer à la ligne */
+}
+
+.carte-retard {
+  border: 1.5px solid var(--retard);
+}
+
+.heure {
+  margin-right: 8px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.actions-carte {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.bouton-carte {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 18px;
+  color: var(--texte);
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ---------- Écran Toutes les tâches (étape 6) ---------- */
+.champ-recherche {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--texte);
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+.champ-recherche:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.panneau-filtres {
+  margin-top: 10px;
+  padding: 0 14px;
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+}
+
+.panneau-filtres[open] {
+  padding-bottom: 12px;
+}
+
+.titre-filtres {
+  padding: 12px 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ligne-selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.choix-liste {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--texte-discret);
+  font-size: 14px;
+}
+
+.choix-liste select {
+  min-height: 40px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--texte);
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+.panneau-filtres .bouton-discret {
+  margin-top: 8px;
+  padding-left: 0;
+}
+
+.resume-filtres {
+  margin: 12px 0 8px;
+}
+
+.interet-carte {
+  flex-shrink: 0;
+  min-width: 32px;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* Tableau (PC) */
+.tableau-taches {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+.tableau-taches th,
+.tableau-taches td {
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.tableau-taches th {
+  color: var(--texte-discret);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tableau-taches tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tableau-taches .colonne-nombre {
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cellule-titre {
+  overflow-wrap: anywhere;
+}
+
+.entete-tri {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.entete-tri:hover {
+  color: var(--texte);
+  text-decoration: underline;
+}
+
+/* ---------- Liens vers la fiche (étape 7) ---------- */
+.lien-fiche {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.contenu-carte {
+  display: block;
+}
+
+.ligne-cliquable {
+  cursor: pointer;
+}
+
+.ligne-cliquable:hover td {
+  background: var(--fond);
+}
+
+.lien-fiche:hover .titre-tache,
+.ligne-cliquable:hover .lien-fiche {
+  text-decoration: underline;
+}
+
+/* ---------- Fiche tâche (étape 7) ---------- */
+.barre-fiche {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bouton-retour {
+  padding-left: 0;
+}
+
+.etat-enregistrement.succes {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.titre-fiche {
+  margin-top: 4px;
+  font-size: 20px;
+}
+
+.section-fiche {
+  margin-top: 16px;
+  padding: 14px 16px 16px;
+  background: var(--carte);
+  border: 1px solid var(--bordure);
+  border-radius: 12px;
+}
+
+.section-fiche > .titre-bloc {
+  margin-bottom: 4px;
+}
+
+details.section-fiche > summary {
+  cursor: pointer;
+}
+
+.champ-fiche {
+  margin-top: 12px;
+}
+
+.champ-fiche .etiquette {
+  display: block;
+}
+
+.champ {
+  width: 100%;
+  min-height: 44px;
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--texte);
+  background: var(--fond);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+textarea.champ {
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.champ:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.date-heure {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 8px;
+}
+
+.valeur-calculee {
+  margin: 0;
+  font-weight: 600;
+}
+
+.avertissement {
+  min-height: 0;
+  margin: 8px 0 0;
+  color: var(--retard);
+  font-size: 14px;
+}
+
+.avertissement:empty {
+  display: none;
+}
+
+.actions-fiche {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.actions-fiche .bouton {
+  flex: 1 1 40%;
+  white-space: nowrap;
+}
+
+.actions-fiche .bouton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ---------- Réglages et rappel de sauvegarde (étape 8) ---------- */
+.etat-sauvegarde {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  background: var(--fond);
+  border: 1px solid var(--bordure);
+  border-radius: 8px;
+}
+
+.etat-sauvegarde.alerte,
+.rappel-sauvegarde {
+  color: var(--texte);
+  background: var(--alerte-fond);
+  border: 1.5px solid var(--alerte);
+  font-weight: 600;
+}
+
+.rappel-sauvegarde {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.boutons-sauvegarde {
+  display: flex;
+  gap: 8px;
+}
+
+.boutons-sauvegarde .bouton {
+  flex: 1;
+}
+
+.liste-categories {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ligne-categorie {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nom-categorie {
+  flex: 1;
+  min-width: 0;
+}
+
+.nom-categorie .champ {
+  min-height: 40px;
+  padding: 6px 10px;
+}
+
+.categorie-masquee .champ {
+  color: var(--texte-discret);
+  text-decoration: line-through;
+}
+
+.bouton-carte:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.bouton-texte {
+  font-size: 14px;
+  min-width: 84px;
+}
+
+.ajout-categorie {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.ajout-categorie .bouton {
+  white-space: nowrap;
+}
+
+.ligne-info {
+  margin: 4px 0;
+  font-size: 15px;
+}
+
+/* ---------- PC : écrans larges ---------- */
+@media (min-width: 800px) {
+  .bouton-texte {
+    font-size: 14px;
+  }
+
+  .ecran[data-ecran="reglages"] {
+    max-width: 680px;
+  }
+
+  /* Fiche : plus large, en deux colonnes (Essentiel à gauche ; Planification et Clôture à droite) */
+  .ecran[data-ecran="fiche"] {
+    max-width: 980px;
+  }
+
+  .fiche-colonnes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .actions-fiche .bouton {
+    flex: none;
+    min-width: 120px;
+  }
+
+  .champ-recherche,
+  .panneau-filtres,
+  .tableau-taches {
+    max-width: 900px;
+  }
+
+  .bouton-carte {
+    min-height: 36px;
+    padding: 6px 14px;
+    font-size: 15px;
+  }
+
+  .application {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+
+  /* La navigation devient une colonne à gauche */
+  .navigation {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px 12px;
+    border-top: none;
+    border-right: 1px solid var(--bordure);
+  }
+
+  .navigation a {
+    flex: none;
+    padding: 10px 12px;
+    border-top: none;
+    border-radius: 8px;
+    color: var(--texte);
+    font-size: 15px;
+    text-align: left;
+  }
+
+  .navigation a[aria-current="page"] {
+    background: var(--fond);
+  }
+
+  .bouton-nouvelle-pc {
+    display: block;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .libelle-long {
+    display: inline;
+  }
+
+  .lien-reglages-pc {
+    display: block;
+  }
+
+  .libelle-court,
+  .lien-reglages-mobile,
+  .bouton-flottant {
+    display: none;
+  }
+
+  .astuce-clavier {
+    display: block;
+    margin: auto 12px 0;
+    color: var(--texte-discret);
+    font-size: 13px;
+  }
+
+  .entete {
+    position: static;
+    padding: 24px 32px 8px;
+    background: transparent;
+    border-bottom: none;
+  }
+
+  .ecran {
+    padding: 8px 32px 32px;
+  }
+
+  /* Sur PC, la fenêtre de capture est centrée */
+  .capture {
+    margin: auto;
+  }
+
+  /* Sur PC, chaque ligne de qualification : libellé à gauche, choix à droite */
+  .qualification {
+    max-width: 680px;
+    padding: 20px 24px;
+  }
+
+  .ligne-qualification {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .etiquette {
+    margin-bottom: 0;
+  }
+
+  .aide {
+    display: block;
+    margin-left: 0;
+    font-size: 12px;
+  }
+
+  .aide::before,
+  .aide::after {
+    content: "";
+  }
+
+  .actions-qualification .bouton-principal,
+  .actions-qualification .bouton:not(.bouton-discret) {
+    flex: none;
+    min-width: 130px;
+  }
+
+  .astuce-pc {
+    display: block;
+    color: var(--texte-discret);
+    font-size: 13px;
+  }
+
+  .bandeau {
+    bottom: 24px;
+    left: 252px;
+  }
+}

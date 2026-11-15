@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<!--
+  tests-calculs.html : vérifie automatiquement les règles de js/calculs.js.
+  À ouvrir avec le serveur lancé : http://localhost:3000/tests/tests-calculs.html
+  Chaque ligne verte est une règle vérifiée ; une ligne rouge signale un problème.
+-->
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tests des calculs</title>
+  <style>
+    body { font-family: system-ui, "Segoe UI", Roboto, sans-serif; margin: 24px; color: #1d2433; background: #f6f7f9; }
+    h1 { font-size: 22px; }
+    .resume { font-size: 18px; font-weight: 600; padding: 12px 16px; border-radius: 8px; }
+    .resume.ok { background: #e5f4e4; color: #1e6b2a; }
+    .resume.echec { background: #fbebeb; color: #a12626; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 6px 10px; margin: 4px 0; border-radius: 6px; background: #fff; border-left: 5px solid #2e9d46; }
+    li.echec { border-left-color: #d03838; background: #fbebeb; }
+    .detail { color: #5f6878; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Tests des calculs</h1>
+  <p class="resume" id="resume">Tests en cours…</p>
+  <ul id="resultats"></ul>
+
+  <script type="module">
+    import {
+      interet, estUneNote, categoriesRecentes,
+      dateEnTexte, dateDepuisTexte, dateRapide, debutPlanifie,
+      jourPrevu, heurePrevue, estEnRetard, estPrevueAujourdhui, trierJournee, trierRetard,
+      meilleuresAPlanifier, changementsFait, changementsDemain, changementsAujourdhui, libelleJour,
+      normaliserTexte, filtrerTaches, trierTaches,
+      estTerminee, separerDateHeure, changementsEtat, changementsDates, finAvantDebut,
+      verifierNomCategorie, deplacer, nomFichierSauvegarde, verifierSauvegarde, joursEcoules, etatSauvegarde
+    } from '../js/calculs.js';
+
+    const resultats = [];
+    function verifier(nom, obtenu, attendu) {
+      const reussi = JSON.stringify(obtenu) === JSON.stringify(attendu);
+      resultats.push({ nom, reussi, obtenu, attendu });
+    }
+
+    // ---------- Intérêt = Impact × Faisabilité ----------
+    verifier('Intérêt 4 × 4 = 16', interet({ faisabilite: 4, impact: 4 }), 16);
+    verifier('Intérêt maximum 5 × 5 = 25', interet({ faisabilite: 5, impact: 5 }), 25);
+    verifier('Intérêt minimum 1 × 1 = 1', interet({ faisabilite: 1, impact: 1 }), 1);
+    verifier('Fort impact, peu faisable : 5 × 1 = 5', interet({ faisabilite: 1, impact: 5 }), 5);
+    verifier('Faisabilité manquante → 0', interet({ faisabilite: null, impact: 3 }), 0);
+    verifier('Impact manquant → 0', interet({ faisabilite: 3, impact: null }), 0);
+    verifier('Note 0 refusée → 0', interet({ faisabilite: 0, impact: 3 }), 0);
+    verifier('Note 6 refusée → 0', interet({ faisabilite: 6, impact: 2 }), 0);
+    verifier('Note en texte refusée → 0', interet({ faisabilite: '4', impact: 4 }), 0);
+    verifier('Aucune tâche → 0', interet(undefined), 0);
+    verifier('3 est une note valide', estUneNote(3), true);
+    verifier('2,5 n\'est pas une note valide', estUneNote(2.5), false);
+
+    // ---------- Catégories récentes ----------
+    const liste = ['Loisirs', 'Famille', 'Santé', 'Logement', 'Transport'];
+    verifier('Aucune tâche : les 3 premières de la liste',
+      categoriesRecentes([], liste), ['Loisirs', 'Famille', 'Santé']);
+    verifier('La plus récente en premier, puis complétée par la liste',
+      categoriesRecentes([
+        { categorie: 'Logement', modifieLe: '2026-11-10T10:00:00Z' },
+        { categorie: 'Transport', modifieLe: '2026-11-14T10:00:00Z' },
+        { categorie: null, modifieLe: '2026-11-15T10:00:00Z' }
+      ], liste), ['Transport', 'Logement', 'Loisirs']);
+    verifier('Pas de doublon, catégorie inconnue ignorée',
+      categoriesRecentes([
+        { categorie: 'Transport', modifieLe: '2026-11-14T10:00:00Z' },
+        { categorie: 'Transport', modifieLe: '2026-11-13T10:00:00Z' },
+        { categorie: 'Inconnue', modifieLe: '2026-11-15T10:00:00Z' }
+      ], liste), ['Transport', 'Loisirs', 'Famille']);
+
+    // ---------- Dates ----------
+    const dimanche = new Date(2026, 10, 15);   // dimanche 15 novembre 2026
+    verifier('Date en texte', dateEnTexte(new Date(2026, 0, 5)), '2026-01-05');
+    verifier('Texte vers date : le 16 reste le 16', dateDepuisTexte('2026-11-16T14:30').getDate(), 16);
+    verifier('Texte invalide → rien', dateDepuisTexte('16/11/2026'), null);
+    verifier('Aujourd\'hui (dimanche 15)', dateRapide('aujourdhui', dimanche), '2026-11-15');
+    verifier('Demain (lundi 16)', dateRapide('demain', dimanche), '2026-11-16');
+    verifier('Demain en fin de mois → 1er décembre', dateRapide('demain', new Date(2026, 10, 30)), '2026-12-01');
+    verifier('Demain le 31 décembre → 1er janvier', dateRapide('demain', new Date(2026, 11, 31)), '2027-01-01');
+    verifier('« Samedi » n\'est plus un raccourci → rien', dateRapide('samedi', dimanche), null);
+    verifier('Choix inconnu → rien', dateRapide('lundi', dimanche), null);
+    verifier('Planifié sans heure', debutPlanifie('2026-11-16', ''), '2026-11-16');
+    verifier('Planifié avec heure', debutPlanifie('2026-11-16', '14:30'), '2026-11-16T14:30');
+    verifier('Heure invalide ignorée', debutPlanifie('2026-11-16', '14h'), '2026-11-16');
+    verifier('Date absente → rien', debutPlanifie('', '14:30'), null);
+
+    // ---------- Écran Aujourd'hui (étape 5) ----------
+    // Référence : dimanche 15 novembre 2026.
+    const jour = '2026-11-15';
+    const t = (champs) => ({ titre: 'T', etat: 'planifiee', debut: null, fin: null, faisabilite: null,
+      impact: null, nbReports: 0, creeLe: '2026-11-01T08:00:00Z', ...champs });
+
+    verifier('Jour prévu sans l\'heure', jourPrevu(t({ debut: '2026-11-15T14:30' })), '2026-11-15');
+    verifier('Heure prévue', heurePrevue(t({ debut: '2026-11-15T14:30' })), '14:30');
+    verifier('Pas d\'heure prévue', heurePrevue(t({ debut: '2026-11-15' })), null);
+    verifier('Planifiée hier → en retard', estEnRetard(t({ debut: '2026-11-14' }), jour), true);
+    verifier('Planifiée aujourd\'hui → pas en retard', estEnRetard(t({ debut: '2026-11-15T08:00' }), jour), false);
+    verifier('Faite hier → pas en retard', estEnRetard(t({ etat: 'faite', debut: '2026-11-14' }), jour), false);
+    verifier('À planifier → jamais en retard', estEnRetard(t({ etat: 'a_planifier' }), jour), false);
+    verifier('Fin passée → en retard même si début aujourd\'hui',
+      estEnRetard(t({ debut: '2026-11-15', fin: '2026-11-14' }), jour), true);
+    verifier('Prévue aujourd\'hui', estPrevueAujourdhui(t({ debut: '2026-11-15' }), jour), true);
+    verifier('Prévue demain → pas aujourd\'hui', estPrevueAujourdhui(t({ debut: '2026-11-16' }), jour), false);
+    verifier('En retard → pas dans « Aujourd\'hui »', estPrevueAujourdhui(t({ debut: '2026-11-14' }), jour), false);
+
+    verifier('Journée : heures dans l\'ordre, puis sans heure par intérêt',
+      trierJournee([
+        t({ titre: 'sans heure, intérêt 4', debut: jour, faisabilite: 2, impact: 2 }),
+        t({ titre: '18:00', debut: jour + 'T18:00' }),
+        t({ titre: 'sans heure, intérêt 20', debut: jour, faisabilite: 4, impact: 5 }),
+        t({ titre: '09:30', debut: jour + 'T09:30' })
+      ]).map((x) => x.titre),
+      ['09:30', '18:00', 'sans heure, intérêt 20', 'sans heure, intérêt 4']);
+    verifier('Retard : le plus ancien d\'abord',
+      trierRetard([t({ titre: 'hier', debut: '2026-11-14' }), t({ titre: 'il y a 3 jours', debut: '2026-11-12' })])
+        .map((x) => x.titre), ['il y a 3 jours', 'hier']);
+    verifier('Ensuite : 3 meilleures « À planifier », égalité → la plus ancienne',
+      meilleuresAPlanifier([
+        t({ titre: 'A 12 récente', etat: 'a_planifier', faisabilite: 3, impact: 4, creeLe: '2026-11-10T08:00:00Z' }),
+        t({ titre: 'B 20', etat: 'a_planifier', faisabilite: 4, impact: 5 }),
+        t({ titre: 'C planifiée 25', etat: 'planifiee', faisabilite: 5, impact: 5 }),
+        t({ titre: 'D 12 ancienne', etat: 'a_planifier', faisabilite: 4, impact: 3, creeLe: '2026-11-02T08:00:00Z' }),
+        t({ titre: 'E 2', etat: 'a_planifier', faisabilite: 1, impact: 2 })
+      ]).map((x) => x.titre), ['B 20', 'D 12 ancienne', 'A 12 récente']);
+
+    verifier('Fait : état et date de fin réelle',
+      changementsFait('2026-11-15T10:00:00Z'), { etat: 'faite', termineLe: '2026-11-15T10:00:00Z' });
+    verifier('Demain : lendemain, heure gardée, un report de plus',
+      changementsDemain(t({ debut: '2026-11-15T14:30', nbReports: 1 }), dimanche),
+      { etat: 'planifiee', debut: '2026-11-16T14:30', nbReports: 2 });
+    verifier('Demain depuis un retard de 3 jours → demain, pas le lendemain du retard',
+      changementsDemain(t({ debut: '2026-11-12' }), dimanche).debut, '2026-11-16');
+    verifier('Demain : une fin dépassée suit aussi',
+      changementsDemain(t({ debut: '2026-11-15', fin: '2026-11-14T18:00' }), dimanche).fin, '2026-11-16T18:00');
+    verifier('Demain : une fin future ne bouge pas',
+      'fin' in changementsDemain(t({ debut: '2026-11-15', fin: '2026-11-20' }), dimanche), false);
+    verifier('+ Aujourd\'hui : planifiée aujourd\'hui sans heure',
+      changementsAujourdhui(dimanche), { etat: 'planifiee', debut: '2026-11-15' });
+
+    verifier('Libellé : aujourd\'hui', libelleJour('2026-11-15T09:00', jour), 'aujourd\'hui');
+    verifier('Libellé : hier', libelleJour('2026-11-14', jour), 'hier');
+    verifier('Libellé : demain', libelleJour('2026-11-16', jour), 'demain');
+    verifier('Libellé : autre jour', libelleJour('2026-11-12', jour), 'le 12 nov.');
+
+    // ---------- Toutes les tâches (étape 6) ----------
+    const liste6 = [
+      t({ titre: 'Dossier Impôts', categorie: 'Finances', etat: 'a_planifier', faisabilite: 4, impact: 4, creeLe: '2026-11-03T08:00:00Z' }),
+      t({ titre: 'Appeler le garage', categorie: 'Transport', etat: 'planifiee', debut: '2026-11-16T10:00', faisabilite: 3, impact: 5, creeLe: '2026-11-05T08:00:00Z' }),
+      t({ titre: 'Carte grise', categorie: 'Transport', etat: 'faite', debut: '2026-11-14', faisabilite: 4, impact: 5, creeLe: '2026-11-01T08:00:00Z' }),
+      t({ titre: 'Écrire au notaire', categorie: 'Administratif', etat: 'inbox', description: 'Succession, voir les impôts', creeLe: '2026-11-07T08:00:00Z' }),
+      t({ titre: 'Peindre', categorie: 'Loisirs', etat: 'abandonnee', creeLe: '2026-11-02T08:00:00Z' }),
+      t({ titre: 'Ranger', categorie: 'Logement', etat: 'planifiee', debut: '2026-11-20', faisabilite: 5, impact: 2, creeLe: '2026-11-06T08:00:00Z' })
+    ];
+    const titres = (l) => l.map((x) => x.titre);
+    verifier('Texte normalisé : sans accent ni majuscule', normaliserTexte('  Écrire IMPÔTS '), 'ecrire impots');
+    verifier('Par défaut : non terminées seulement',
+      titres(filtrerTaches(liste6)), ['Dossier Impôts', 'Appeler le garage', 'Écrire au notaire', 'Ranger']);
+    verifier('Filtre Terminées : faites et abandonnées',
+      titres(filtrerTaches(liste6, { etat: 'terminees' })), ['Carte grise', 'Peindre']);
+    verifier('Filtre Toutes : 6 tâches', filtrerTaches(liste6, { etat: 'toutes' }).length, 6);
+    verifier('Filtre Planifiées', titres(filtrerTaches(liste6, { etat: 'planifiees' })), ['Appeler le garage', 'Ranger']);
+    verifier('Catégorie Transport (toutes les tâches)',
+      titres(filtrerTaches(liste6, { etat: 'toutes', categories: ['Transport'] })), ['Appeler le garage', 'Carte grise']);
+    verifier('Plusieurs catégories', filtrerTaches(liste6, { categories: ['Transport', 'Logement'] }).length, 2);
+    verifier('Recherche sans accent dans titre et description',
+      titres(filtrerTaches(liste6, { recherche: 'impots' })), ['Dossier Impôts', 'Écrire au notaire']);
+    verifier('Recherche à plusieurs mots (tous requis)',
+      titres(filtrerTaches(liste6, { recherche: 'ecrire notaire' })), ['Écrire au notaire']);
+    verifier('Recherche sans résultat', filtrerTaches(liste6, { recherche: 'xyz' }).length, 0);
+    const actives = filtrerTaches(liste6);
+    verifier('Tri intérêt décroissant (0 à la fin)',
+      titres(trierTaches(actives, 'interet')), ['Dossier Impôts', 'Appeler le garage', 'Ranger', 'Écrire au notaire']);
+    verifier('Tri intérêt croissant',
+      titres(trierTaches(actives, 'interet', 'asc'))[0], 'Écrire au notaire');
+    verifier('Tri date prévue : la plus proche d\'abord, sans date à la fin',
+      titres(trierTaches(actives, 'echeance')), ['Appeler le garage', 'Ranger', 'Dossier Impôts', 'Écrire au notaire']);
+    verifier('Tri date prévue inversé : sans date toujours à la fin',
+      titres(trierTaches(actives, 'echeance', 'desc')), ['Ranger', 'Appeler le garage', 'Dossier Impôts', 'Écrire au notaire']);
+    verifier('Tri date prévue : le même jour, avec heure avant sans heure',
+      titres(trierTaches([t({ titre: 'sans heure', debut: '2026-11-16' }), t({ titre: '10:00', debut: '2026-11-16T10:00' })], 'echeance')),
+      ['10:00', 'sans heure']);
+    verifier('Tri création : la plus récente d\'abord',
+      titres(trierTaches(actives, 'creation'))[0], 'Écrire au notaire');
+    verifier('Tri titre alphabétique (É rangé avec E)',
+      titres(trierTaches(actives, 'titre')), ['Appeler le garage', 'Dossier Impôts', 'Écrire au notaire', 'Ranger']);
+    verifier('Le tri ne modifie pas la liste d\'origine', titres(actives)[0], 'Dossier Impôts');
+
+    // ---------- Fiche tâche (étape 7) ----------
+    const maintenant = '2026-11-15T10:00:00.000Z';
+    verifier('Faite est terminée', estTerminee(t({ etat: 'faite' })), true);
+    verifier('Abandonnée est terminée', estTerminee(t({ etat: 'abandonnee' })), true);
+    verifier('Planifiée n\'est pas terminée', estTerminee(t({ etat: 'planifiee' })), false);
+    verifier('Séparer date et heure', separerDateHeure('2026-11-16T14:30'), { date: '2026-11-16', heure: '14:30' });
+    verifier('Séparer une date sans heure', separerDateHeure('2026-11-16'), { date: '2026-11-16', heure: '' });
+    verifier('Séparer : aucune date', separerDateHeure(null), { date: '', heure: '' });
+    verifier('Passer à Faite enregistre l\'heure de fin',
+      changementsEtat(t({ etat: 'planifiee' }), 'faite', maintenant), { etat: 'faite', termineLe: maintenant });
+    verifier('Déjà terminée : l\'heure de fin d\'origine est gardée',
+      changementsEtat(t({ etat: 'faite', termineLe: '2026-11-10T08:00:00Z' }), 'abandonnee', maintenant), { etat: 'abandonnee' });
+    verifier('Revenir à Planifiée efface l\'heure de fin',
+      changementsEtat(t({ etat: 'faite', termineLe: maintenant }), 'planifiee', maintenant), { etat: 'planifiee', termineLe: null });
+    verifier('Date posée sur une tâche À planifier → Planifiée',
+      changementsDates(t({ etat: 'a_planifier' }), '2026-11-20', null), { debut: '2026-11-20', fin: null, etat: 'planifiee' });
+    verifier('Date posée sur une capture Inbox → Planifiée',
+      changementsDates(t({ etat: 'inbox' }), null, '2026-11-20T18:00').etat, 'planifiee');
+    verifier('Dates effacées sur une Planifiée → À planifier',
+      changementsDates(t({ etat: 'planifiee', debut: '2026-11-20' }), '', ''), { debut: null, fin: null, etat: 'a_planifier' });
+    verifier('Date changée sur une Planifiée : état inchangé',
+      'etat' in changementsDates(t({ etat: 'planifiee' }), '2026-11-21', null), false);
+    verifier('Tâche faite : les dates ne changent pas l\'état',
+      'etat' in changementsDates(t({ etat: 'faite' }), '', ''), false);
+    verifier('Fin avant le début → avertissement', finAvantDebut(t({ debut: '2026-11-20', fin: '2026-11-19' })), true);
+    verifier('Fin le même jour sans heure → pas d\'avertissement', finAvantDebut(t({ debut: '2026-11-20T14:00', fin: '2026-11-20' })), false);
+    verifier('Fin à une heure plus tôt le même jour → avertissement',
+      finAvantDebut(t({ debut: '2026-11-20T14:00', fin: '2026-11-20T09:00' })), true);
+    verifier('Une seule date → pas d\'avertissement', finAvantDebut(t({ debut: '2026-11-20' })), false);
+
+    // ---------- Réglages (étape 8) ----------
+    const noms = ['Logement', 'Transport', 'Santé'];
+    verifier('Nouvelle catégorie : espaces retirés', verifierNomCategorie('  Jardin  ', noms), { valide: true, nom: 'Jardin' });
+    verifier('Nom vide refusé', verifierNomCategorie('   ', noms).valide, false);
+    verifier('Doublon refusé, même sans accent ni majuscule', verifierNomCategorie('SANTE', noms).valide, false);
+    verifier('Renommer en gardant le même nom (majuscule changée) accepté',
+      verifierNomCategorie('LOGEMENT', noms, 'Logement'), { valide: true, nom: 'LOGEMENT' });
+    verifier('Nom trop long refusé', verifierNomCategorie('x'.repeat(41), noms).valide, false);
+    verifier('Monter le 2e', deplacer(['a', 'b', 'c'], 1, -1), ['b', 'a', 'c']);
+    verifier('Descendre le 2e', deplacer(['a', 'b', 'c'], 1, 1), ['a', 'c', 'b']);
+    verifier('Monter le 1er : rien ne change', deplacer(['a', 'b', 'c'], 0, -1), ['a', 'b', 'c']);
+    verifier('Descendre le dernier : rien ne change', deplacer(['a', 'b', 'c'], 2, 1), ['a', 'b', 'c']);
+    verifier('Nom du fichier de sauvegarde', nomFichierSauvegarde(new Date(2026, 10, 5)), 'organisation-2026-11-05.json');
+
+    const sauvegarde = {
+      application: 'organisation', format: 1, exporteLe: '2026-11-15T10:00:00.000Z',
+      taches: [t({ id: 'x1', titre: 'Un' }), t({ id: 'x2', titre: 'Deux', etat: 'faite' })],
+      categories: [{ nom: 'Logement', masquee: false }, { nom: 'Ancienne', masquee: true }]
+    };
+    const lu = verifierSauvegarde(sauvegarde);
+    verifier('Sauvegarde correcte acceptée', [lu.valide, lu.taches.length, lu.categories[1]], [true, 2, { nom: 'Ancienne', masquee: true }]);
+    verifier('Sauvegarde sans catégories acceptée (catégories actuelles gardées)',
+      verifierSauvegarde({ ...sauvegarde, categories: undefined }).categories, null);
+    verifier('Autre fichier JSON refusé', verifierSauvegarde({ taches: [] }).valide, false);
+    verifier('Fichier vide refusé', verifierSauvegarde(null).valide, false);
+    verifier('Tâche sans titre refusée', verifierSauvegarde({ ...sauvegarde, taches: [t({ id: 'x', titre: ' ' })] }).valide, false);
+    verifier('Identifiants en double refusés', verifierSauvegarde({ ...sauvegarde, taches: [t({ id: 'x' }), t({ id: 'x' })] }).valide, false);
+    verifier('État inconnu refusé', verifierSauvegarde({ ...sauvegarde, taches: [t({ id: 'x', etat: 'zzz' })] }).valide, false);
+    verifier('Sauvegarde sans aucune tâche acceptée', verifierSauvegarde({ ...sauvegarde, taches: [] }).valide, true);
+
+    const le15 = new Date(2026, 10, 15, 9, 0);
+    verifier('Jours écoulés : même jour', joursEcoules(new Date(2026, 10, 15, 1, 0).toISOString(), le15), 0);
+    verifier('Jours écoulés : 34 jours', joursEcoules(new Date(2026, 9, 12, 20, 0).toISOString(), le15), 34);
+    verifier('Sauvegarde il y a 10 jours : pas de rappel',
+      etatSauvegarde(new Date(2026, 10, 5).toISOString(), [], le15), { jamais: false, jours: 10, rappel: false });
+    verifier('Sauvegarde il y a 30 jours : rappel',
+      etatSauvegarde(new Date(2026, 9, 16).toISOString(), [], le15).rappel, true);
+    verifier('Jamais sauvegardé, plus vieille tâche il y a 5 jours : pas encore de rappel',
+      etatSauvegarde(null, [t({ creeLe: new Date(2026, 10, 10).toISOString() })], le15), { jamais: true, jours: 5, rappel: false });
+    verifier('Jamais sauvegardé, plus vieille tâche il y a 40 jours : rappel',
+      etatSauvegarde(null, [t({ creeLe: new Date(2026, 10, 14).toISOString() }), t({ creeLe: new Date(2026, 9, 6).toISOString() })], le15).rappel, true);
+    verifier('Aucune tâche, jamais sauvegardé : pas de rappel', etatSauvegarde(null, [], le15).rappel, false);
+
+    // ---------- Affichage ----------
+    const echecs = resultats.filter((r) => !r.reussi).length;
+    const resume = document.getElementById('resume');
+    resume.textContent = echecs === 0
+      ? `${resultats.length} tests réussis sur ${resultats.length}`
+      : `${echecs} test(s) en échec sur ${resultats.length}`;
+    resume.className = 'resume ' + (echecs === 0 ? 'ok' : 'echec');
+
+    const ul = document.getElementById('resultats');
+    for (const r of resultats) {
+      const li = document.createElement('li');
+      li.className = r.reussi ? 'ok' : 'echec';
+      li.textContent = (r.reussi ? '✓ ' : '✗ ') + r.nom;
+      if (!r.reussi) {
+        const detail = document.createElement('div');
+        detail.className = 'detail';
+        detail.textContent = `Obtenu : ${JSON.stringify(r.obtenu)} · attendu : ${JSON.stringify(r.attendu)}`;
+        li.append(detail);
+      }
+      ul.append(li);
+    }
+  </script>
+</body>
+</html>
